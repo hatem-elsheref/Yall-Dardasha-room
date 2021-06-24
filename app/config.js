@@ -7,7 +7,7 @@ module.exports = {
     },
     production: {
         port: process.env.PORT,
-        url: 'https://yalla-dardasha-user.herokuapp.com'
+        url: 'https://yalla-dardasha-room.herokuapp.com'
     },
     mongo: {
         mongoDevelopmentUrl: 'mongodb://localhost/gp_clubhouse',
