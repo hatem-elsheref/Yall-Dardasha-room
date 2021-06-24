@@ -17,7 +17,12 @@ module.exports.getRooms = async(request, response) => {
             room_name : room.name,
             audience: room.audience.length,
             speakers: room.speakers.length,
-            is_available: room.available
+            is_available: room.available,
+            members: [
+                ...room.speakers,
+                ...room.audience
+            ].slice(0, 3)
+
         })
     })
 
