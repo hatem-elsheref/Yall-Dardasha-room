@@ -19,5 +19,5 @@ module.exports = {
             useCreateIndex: true
         }
     },
-    devEnvironment: false
+    devEnvironment: true
 }

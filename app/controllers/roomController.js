@@ -8,13 +8,13 @@ const fetch = require('node-fetch')
  * @return list of rooms | []
  * @roomInfo {room_id, name, speakers, audience, available}
  * */
-module.exports.getRooms = async(request, response) => {
+module.exports.getRooms = async (request, response) => {
     let allRooms = await Room.find()
     let rooms = [];
     allRooms.forEach((room) => {
         rooms.push({
-            room_id : room._id,
-            room_name : room.name,
+            room_id: room._id,
+            room_name: room.name,
             audience: room.audience.length,
             speakers: room.speakers.length,
             is_available: room.available,
@@ -26,7 +26,7 @@ module.exports.getRooms = async(request, response) => {
         })
     })
 
-    return response.status(200).json({count: rooms.length, rooms: rooms});
+    return response.status(200).json({ count: rooms.length, rooms: rooms });
 }
 
 /**
@@ -36,9 +36,9 @@ module.exports.getRooms = async(request, response) => {
  * @return room object (roomInfo)|null
  * @roomInfo {_id, name, created_by, created_at, available, adminsList, usersList}
  * */
-module.exports.getRoomInfo = async(request, response) => {
-    let room = await Room.findOne({_id: request.body.room_id})
-    return response.status(200).json({room_info: room});
+module.exports.getRoomInfo = async (request, response) => {
+    let room = await Room.findOne({ _id: request.body.room_id })
+    return response.status(200).json({ room_info: room });
 }
 
 /**
@@ -52,28 +52,28 @@ module.exports.createRoom = async (request, response) => {
 
     let user = await getUserInfo(request)
 
-     let roomDetails = {
+    let roomDetails = {
         name: request.body.name,
         created_by: user._id,
         available: true,
         audience: [],
         speakers: [
-        {
-            is_moderator: true,
-            is_speaker: true,
-            user_name : user.name,
-            user_id: user._id,
-            user_image: user.imageUrl
-        }
+            {
+                is_moderator: true,
+                is_speaker: true,
+                user_name: user.name,
+                user_id: user._id,
+                user_image: user.imageUrl
+            }
         ]
     }
 
-        try {
-            let room = await Room.create(roomDetails)
-            return response.status(200).json({message: "Room Created Successfully", room: room})
-        }catch (Error){
-            return response.status(200).json({message: "Failed To Create Room", room: {}})
-        }
+    try {
+        let room = await Room.create(roomDetails)
+        return response.status(200).json({ message: "Room Created Successfully", room: room })
+    } catch (Error) {
+        return response.status(200).json({ message: "Failed To Create Room", room: {} })
+    }
 }
 
 /**
@@ -82,30 +82,30 @@ module.exports.createRoom = async (request, response) => {
  * @input room id (room_id) in request body
  * @return message refer user joined room or not
  * */
-module.exports.joinRoom = async(request, response) => {
-    try{
-        let room = await Room.findOne({_id: request.body.room_id})
+module.exports.joinRoom = async (request, response) => {
+    try {
+        let room = await Room.findOne({ _id: request.body.room_id })
         let user = await getUserInfo(request)
         let is_in_room = await checkIfUserInRoom([room.audience, room.speakers], user._id)
-        if (is_in_room === false){
+        if (is_in_room === false) {
             room.audience.push(
                 {
                     is_moderator: false,
                     is_speaker: false,
-                    user_name : user.name,
+                    user_name: user.name,
                     user_id: user._id,
                     user_image: user.imageUrl
                 }
             )
 
-            let result = await Room.updateOne({_id: room._id}, room)
-            return response.status(200).json({joined: true, room: room, message: result.nModified >= 1 ? "Joined Room Successfully" : "Failed To Join Room"});
-        }else{
-            return response.status(200).json({joined: true, room: room, message: "You Already Joined Before"});
+            let result = await Room.updateOne({ _id: room._id }, room)
+            return response.status(200).json({ joined: true, room: room, message: result.nModified >= 1 ? "Joined Room Successfully" : "Failed To Join Room" });
+        } else {
+            return response.status(200).json({ joined: true, room: room, message: "You Already Joined Before" });
         }
 
-    }catch (Error){
-        return response.status(200).json({joined: false, room: {}, message: "Invalid Room Identifier"});
+    } catch (Error) {
+        return response.status(200).json({ joined: false, room: {}, message: "Invalid Room Identifier" });
     }
 }
 
@@ -115,27 +115,27 @@ module.exports.joinRoom = async(request, response) => {
  * @input room id (room_id) in request body
  * @return message refer user left room or not
  * */
-module.exports.leaveRoom = async(request, response) => {
-    try{
-        let room = await Room.findOne({_id: request.body.room_id})
+module.exports.leaveRoom = async (request, response) => {
+    try {
+        let room = await Room.findOne({ _id: request.body.room_id })
         let user = await getUserInfo(request)
 
         room.audience.forEach((member, index) => {
-            if (user._id === member.user_id){
+            if (user._id === member.user_id) {
                 room.audience.splice(index, 1)
             }
         })
         room.speakers.forEach((member, index) => {
-            if (user._id === member.user_id){
+            if (user._id === member.user_id) {
                 room.speakers.splice(index, 1)
             }
         })
 
-        let result = await Room.updateOne({_id: room._id}, room)
-        return response.status(200).json({left: true, room: room, message: result.nModified >= 1 ? "You Left The Room Successfully": "You Out The Room"});
+        let result = await Room.updateOne({ _id: room._id }, room)
+        return response.status(200).json({ left: true, room: room, message: result.nModified >= 1 ? "You Left The Room Successfully" : "You Out The Room" });
 
-    }catch (Error){
-        return response.status(200).json({left: false, room: {}, message: "Invalid Room Identifier"});
+    } catch (Error) {
+        return response.status(200).json({ left: false, room: {}, message: "Invalid Room Identifier" });
     }
 }
 
@@ -145,16 +145,24 @@ module.exports.leaveRoom = async(request, response) => {
  * @input room id (room_id) in request body
  * @return message refer to room ended or not
  * */
-module.exports.endRoom = async(request, response) => {
-    let room = await Room.deleteOne({_id: request.body.room_id})
-    return response.status(200).json({message: room.deletedCount === 1 ? "Room Closed" : "Try Again"});
+module.exports.endRoom = async (request, response) => {
+
+    let roomInfo = await Room.findOne({ _id: request.body.room_id })
+
+    if (roomInfo && request.body.user_id == roomInfo.created_by) {
+        let room = await Room.deleteOne({ _id: request.body.room_id })
+        return response.status(200).json({ message: room.deletedCount === 1 ? "Room Closed" : "Try Again" });
+    }
+
+    return response.status(200).json({ message: "You don't have the permission to end the room" });
+
 }
 
 /**
  * @input access token in authorization in request header
  * @return user information
  * */
-async function getUserInfo(request){
+async function getUserInfo(request) {
     let options = {
         method: 'POST',
         headers: {
@@ -166,16 +174,16 @@ async function getUserInfo(request){
     let api = '/user'
     let authResponse = null
 
-    if (configurations.devEnvironment){
-        authResponse = await fetch( 'http://localhost:3001' + api, options).then(res => res.json())
-    }else{
+    if (configurations.devEnvironment) {
+        authResponse = await fetch('http://localhost:3001' + api, options).then(res => res.json())
+    } else {
         authResponse = await fetch('https://yalla-dardasha-user.herokuapp.com' + api, options).then(res => res.json())
     }
 
     let storageUrl = "https://yalla-dardasha-user.herokuapp.com/";
     let imageUrl = "http://mufix.org/uploads/users/default-user.png"
 
-    if (authResponse.user.avatar){
+    if (authResponse.user.avatar) {
         imageUrl = storageUrl + authResponse.user.avatar
     }
 
@@ -188,11 +196,11 @@ async function getUserInfo(request){
  * @input user id of the user who need to join
  * @return true|false
  * */
-async function checkIfUserInRoom(members, user_id){
+async function checkIfUserInRoom(members, user_id) {
     let state = false;
 
     await members[0].forEach((member) => {
-        if (user_id === member.user_id){
+        if (user_id === member.user_id) {
             state = true
             return;
         }
@@ -200,7 +208,7 @@ async function checkIfUserInRoom(members, user_id){
 
 
     await members[1].forEach((member) => {
-        if (user_id === member.user_id){
+        if (user_id === member.user_id) {
             state = true
             return;
         }
